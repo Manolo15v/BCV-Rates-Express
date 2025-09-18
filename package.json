@@ -1,0 +1,29 @@
+{
+  "name": "bcv-rates-express",
+  "version": "1.0.0",
+  "description": "Take home challenge API",
+  "main": "disc/server.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "start": "node ./dist/server.js",
+    "dev": "tsx watch --inspect ./src/server.ts",
+    "clean": "rmdir /s dist"
+  },
+  "author": "Manuel Velazco",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "morgan": "^1.10.1",
+    "mysql2": "^3.15.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
