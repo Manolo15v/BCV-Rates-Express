@@ -1,0 +1,263 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "BCV Exchange Rate API",
+    "version": "1.0.0",
+    "description": "RESTful API for retrieving current and historical exchange rates from the Central Bank of Venezuela (BCV). The API automatically crawls the official BCV website daily to retrieve the current Bs./USD exchange rate.",
+    "license": {
+      "name": "ISC",
+      "url": "https://opensource.org/licenses/ISC"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Health check endpoint",
+        "description": "Returns API status and basic information",
+        "tags": ["Health"],
+        "responses": {
+          "200": {
+            "description": "API is working properly",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": " Rate API is working"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rates/current": {
+      "get": {
+        "summary": "Get current exchange rate",
+        "description": "Retrieves the most recent Bs./USD exchange rate from the Central Bank of Venezuela",
+        "tags": ["Exchange Rates"],
+        "responses": {
+          "200": {
+            "description": "Current exchange rate retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExchangeRate"
+                },
+                "example": {
+                  "date": "2024-12-02",
+                  "rate": 36.72
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No exchange rate data found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "No exchange rate data available"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Failed to retrieve exchange rate data"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rates/history": {
+      "get": {
+        "summary": "Get historical exchange rates",
+        "description": "Retrieves historical exchange rates within the provided date range. If no dates are provided, returns all available data.",
+        "tags": ["Exchange Rates"],
+        "parameters": [
+          {
+            "name": "start_date",
+            "in": "query",
+            "description": "Start date for the historical range (YYYY-MM-DD format)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-01-01"
+            }
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "description": "End date for the historical range (YYYY-MM-DD format)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-01-31"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historical exchange rates retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExchangeRate"
+                  }
+                },
+                "example": [
+                  {
+                    "date": "2024-12-02",
+                    "rate": 36.72
+                  },
+                  {
+                    "date": "2024-12-01",
+                    "rate": 36.50
+                  },
+                  {
+                    "date": "2024-11-30",
+                    "rate": 36.45
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid date format or parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Invalid date format. Please use YYYY-MM-DD format."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Failed to retrieve historical exchange rate data"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ExchangeRate": {
+        "type": "object",
+        "required": ["date", "rate"],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of the exchange rate in YYYY-MM-DD format",
+            "example": "2024-12-02"
+          },
+          "rate": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "description": "Exchange rate value in Bs./USD",
+            "example": 36.72
+          }
+        },
+        "description": "Exchange rate information for a specific date"
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error", "message"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Detailed error message",
+            "example": "Invalid date format. Please use YYYY-MM-DD format."
+          },
+          "code": {
+            "type": "string",
+            "description": "Internal error code (optional)",
+            "example": "INVALID_DATE_FORMAT"
+          }
+        },
+        "description": "Standard error response format"
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request - Invalid parameters or request format",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Health",
+      "description": "API health and status endpoints"
+    },
+    {
+      "name": "Exchange Rates",
+      "description": "Endpoints for retrieving current and historical exchange rate data from BCV"
+    }
+  ]
+}
